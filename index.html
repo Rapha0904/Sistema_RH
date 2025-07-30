@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema RH - Cadastro de Funcionários</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .success-toast {
+            animation: slideIn 0.3s ease-in-out, fadeOut 0.5s ease-in-out 2.5s forwards;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        
+        @keyframes fadeOut {
+            to { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-4 right-4 hidden">
+        <div class="success-toast bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span id="toast-message">Operação realizada com sucesso!</span>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-blue-600 text-white shadow-md">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold">
+                <i class="fas fa-users mr-2"></i> Sistema RH
+            </h1>
+            <div class="flex items-center space-x-4">
+                <span class="hidden md:block">Bem-vindo, Admin</span>
+                <button class="bg-blue-700 hover:bg-blue-800 px-3 py-1 rounded-full">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- Controls and Search -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <h2 class="text-xl font-semibold text-gray-800">
+                <i class="fas fa-id-card mr-2 text-blue-600"></i> Cadastro de Funcionários
+            </h2>
+            
+            <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                <div class="relative flex-grow">
+                    <input type="text" id="search-input" placeholder="Pesquisar funcionários..." 
+                           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                </div>
+                <button id="add-employee-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center whitespace-nowrap">
+                    <i class="fas fa-plus mr-2"></i> Novo Funcionário
+                </button>
+            </div>
+        </div>
+
+        <!-- Employee Table -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cargo</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departamento</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Salário</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employee-table-body" class="bg-white divide-y divide-gray-200">
+                        <!-- Employee data will be inserted here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="empty-state" class="py-12 text-center hidden">
+                <i class="fas fa-user-slash text-4xl text-gray-300 mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-500">Nenhum funcionário cadastrado</h3>
+                <p class="text-gray-400 mt-1">Clique no botão "Novo Funcionário" para começar</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Employee Modal -->
+    <div id="employee-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="modal-overlay absolute inset-0 bg-black opacity-50"></div>
+        
+        <div class="bg-white rounded-lg shadow-xl z-50 w-full max-w-md mx-4 fade-in">
+            <div class="flex justify-between items-center border-b px-6 py-4">
+                <h3 class="text-lg font-semibold text-gray-800" id="modal-title">Adicionar Funcionário</h3>
+                <button id="close-modal" class="text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="employee-form" class="p-6">
+                <input type="hidden" id="employee-id">
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
+                        <input type="text" id="name" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 outline-none">
+                    </div>
+                    
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+                        <input type="email" id="email" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 outline-none">
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="position" class="block text-sm font-medium text-gray-700 mb-1">Cargo</label>
+                            <select id="position" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 outline-none">
+                                <option value="">Selecione um cargo</option>
+                                <!-- Administrativo / Facilities -->
+                                <optgroup label="Administrativo / Facilities">
+                                <option value="Assistente Administrativo">Assistente Administrativo</option>
+                                <option value="Analista Administrativo Júnior">Analista Administrativo Júnior</option>
+                                <option value="Analista Administrativo Pleno">Analista Administrativo Pleno</option>
+                                <option value="Analista Administrativo Sênior">Analista Administrativo Sênior</option>
+                                <option value="Supervisor Administrativo">Supervisor Administrativo</option>
+                                <option value="Coordenador Administrativo">Coordenador Administrativo</option>
+                                <option value="Gerente Administrativo">Gerente Administrativo</option>
+                                </optgroup>
+
+                                <!-- Jurídico -->
+                                <optgroup label="Jurídico">
+                                <option value="Assistente Jurídico">Assistente Jurídico</option>
+                                <option value="Analista Jurídico Júnior">Analista Jurídico Júnior</option>
+                                <option value="Analista Jurídico Pleno">Analista Jurídico Pleno</option>
+                                <option value="Analista Jurídico Sênior">Analista Jurídico Sênior</option>
+                                <option value="Supervisor Jurídico">Supervisor Jurídico</option>
+                                <option value="Coordenador Jurídico">Coordenador Jurídico</option>
+                                <option value="Gerente Jurídico">Gerente Jurídico</option>
+                                </optgroup>
+
+                                <!-- Tecnologia da Informação -->
+                                <optgroup label="Tecnologia da Informação">
+                                <option value="Analista de Sistemas">Analista de Sistemas</option>
+                                <option value="Desenvolvedor Full Stack">Desenvolvedor Full Stack</option>
+                                <option value="Analista de TI Júnior">Analista de TI Júnior</option>
+                                <option value="Analista de TI Pleno">Analista de TI Pleno</option>
+                                <option value="Analista de TI Sênior">Analista de TI Sênior</option>
+                                <option value="Supervisor de TI">Supervisor de TI</option>
+                                <option value="Coordenador de Tecnologia">Coordenador de Tecnologia</option>
+                                <option value="Gerente de TI">Gerente de TI</option>
+                                </optgroup>
+
+                                <!-- Financeiro -->
+                                <optgroup label="Financeiro">
+                                <option value="Assistente Financeiro">Assistente Financeiro</option>
+                                <option value="Analista Financeiro Júnior">Analista Financeiro Júnior</option>
+                                <option value="Analista Financeiro Pleno">Analista Financeiro Pleno</option>
+                                <option value="Analista Financeiro Sênior">Analista Financeiro Sênior</option>
+                                <option value="Supervisor Financeiro">Supervisor Financeiro</option>
+                                <option value="Coordenador Financeiro">Coordenador Financeiro</option>
+                                <option value="Gerente Financeiro">Gerente Financeiro</option>
+                                </optgroup>
+
+                                <!-- Recursos Humanos -->
+                                <optgroup label="Recursos Humanos">
+                                <option value="Assistente de RH">Assistente de RH</option>
+                                <option value="Analista de RH Júnior">Analista de RH Júnior</option>
+                                <option value="Analista de RH Pleno">Analista de RH Pleno</option>
+                                <option value="Analista de RH Sênior">Analista de RH Sênior</option>
+                                <option value="Supervisor de RH">Supervisor de RH</option>
+                                <option value="Coordenador de RH">Coordenador de RH</option>
+                                <option value="Gerente de RH">Gerente de RH</option>
+                                </optgroup>
+
+                                <!-- Vendas -->
+                                <optgroup label="Vendas">
+                                <option value="Consultor de Vendas">Consultor de Vendas</option>
+                                <option value="Executivo de Contas">Executivo de Contas</option>
+                                <option value="Analista Comercial Júnior">Analista Comercial Júnior</option>
+                                <option value="Analista Comercial Pleno">Analista Comercial Pleno</option>
+                                <option value="Analista Comercial Sênior">Analista Comercial Sênior</option>
+                                <option value="Supervisor de Vendas">Supervisor de Vendas</option>
+                                <option value="Coordenador de Vendas">Coordenador de Vendas</option>
+                                <option value="Gerente de Vendas">Gerente de Vendas</option>
+                                </optgroup>
+
+                                <!-- Logística / Cadeia de Suprimentos -->
+                                <optgroup label="Logística / Cadeia de Suprimentos">
+                                <option value="Assistente de Logística">Assistente de Logística</option>
+                                <option value="Analista de Logística Júnior">Analista de Logística Júnior</option>
+                                <option value="Analista de Logística Pleno">Analista de Logística Pleno</option>
+                                <option value="Analista de Logística Sênior">Analista de Logística Sênior</option>
+                                <option value="Supervisor de Logística">Supervisor de Logística</option>
+                                <option value="Coordenador de Logística">Coordenador de Logística</option>
+                                <option value="Gerente de Logística">Gerente de Logística</option>
+                                </optgroup>
+
+                                <!-- Operações / Produção -->
+                                <optgroup label="Operações / Produção">
+                                <option value="Assistente de Produção">Assistente de Produção</option>
+                                <option value="Analista de Produção Júnior">Analista de Produção Júnior</option>
+                                <option value="Analista de Produção Pleno">Analista de Produção Pleno</option>
+                                <option value="Analista de Produção Sênior">Analista de Produção Sênior</option>
+                                <option value="Supervisor de Produção">Supervisor de Produção</option>
+                                <option value="Coordenador de Produção">Coordenador de Produção</option>
+                                <option value="Gerente de Produção">Gerente de Produção</option>
+                                </optgroup>
+
+                                <!-- Engenharia -->
+                                <optgroup label="Engenharia">
+                                <option value="Engenheiro Júnior">Engenheiro Júnior</option>
+                                <option value="Engenheiro Pleno">Engenheiro Pleno</option>
+                                <option value="Engenheiro Sênior">Engenheiro Sênior</option>
+                                <option value="Supervisor de Engenharia">Supervisor de Engenharia</option>
+                                <option value="Coordenador de Engenharia">Coordenador de Engenharia</option>
+                                <option value="Gerente de Engenharia">Gerente de Engenharia</option>
+                                </optgroup>
+
+                                <!-- Pesquisa e Desenvolvimento -->
+                                <optgroup label="Pesquisa e Desenvolvimento">
+                                <option value="Assistente de P&D">Assistente de P&D</option>
+                                <option value="Analista de P&D Júnior">Analista de P&D Júnior</option>
+                                <option value="Analista de P&D Pleno">Analista de P&D Pleno</option>
+                                <option value="Analista de P&D Sênior">Analista de P&D Sênior</option>
+                                <option value="Supervisor de P&D">Supervisor de P&D</option>
+                                <option value="Coordenador de P&D">Coordenador de P&D</option>
+                                <option value="Gerente de P&D">Gerente de P&D</option>
+                                </optgroup>
+
+                                <!-- Qualidade -->
+                                <optgroup label="Qualidade">
+                                <option value="Assistente da Qualidade">Assistente da Qualidade</option>
+                                <option value="Analista da Qualidade Júnior">Analista da Qualidade Júnior</option>
+                                <option value="Analista da Qualidade Pleno">Analista da Qualidade Pleno</option>
+                                <option value="Analista da Qualidade Sênior">Analista da Qualidade Sênior</option>
+                                <option value="Supervisor de Qualidade">Supervisor de Qualidade</option>
+                                <option value="Coordenador de Qualidade">Coordenador de Qualidade</option>
+                                <option value="Gerente de Qualidade">Gerente de Qualidade</option>
+                                </optgroup>
+
+                                <!-- Sustentabilidade / ESG -->
+                                <optgroup label="Sustentabilidade / ESG">
+                                <option value="Analista de ESG Júnior">Analista de ESG Júnior</option>
+                                <option value="Analista de ESG Pleno">Analista de ESG Pleno</option>
+                                <option value="Analista de ESG Sênior">Analista de ESG Sênior</option>
+                                <option value="Supervisor de Sustentabilidade">Supervisor de Sustentabilidade</option>
+                                <option value="Coordenador de Sustentabilidade">Coordenador de Sustentabilidade</option>
+                                <option value="Gerente de Sustentabilidade">Gerente de Sustentabilidade</option>
+                                </optgroup>
+
+                                <!-- Comercial -->
+                                <optgroup label="Comercial">
+                                <option value="Assistente Comercial">Assistente Comercial</option>
+                                <option value="Analista Comercial Júnior">Analista Comercial Júnior</option>
+                                <option value="Analista Comercial Pleno">Analista Comercial Pleno</option>
+                                <option value="Analista Comercial Sênior">Analista Comercial Sênior</option>
+                                <option value="Supervisor Comercial">Supervisor Comercial</option>
+                                <option value="Coordenador Comercial">Coordenador Comercial</option>
+                                <option value="Gerente Comercial">Gerente Comercial</option>
+                                </optgroup>
+
+                                <!-- Marketing -->
+                                <optgroup label="Marketing">
+                                <option value="Assistente de Marketing">Assistente de Marketing</option>
+                                <option value="Analista de Marketing Júnior">Analista de Marketing Júnior</option>
+                                <option value="Analista de Marketing Pleno">Analista de Marketing Pleno</option>
+                                <option value="Analista de Marketing Sênior">Analista de Marketing Sênior</option>
+                                <option value="Supervisor de Marketing">Supervisor de Marketing</option>
+                                <option value="Coordenador de Marketing">Coordenador de Marketing</option>
+                                <option value="Gerente de Marketing">Gerente de Marketing</option>
+                                </optgroup>
+
+                                <!-- Comunicação Corporativa / Relações Públicas -->
+                                <optgroup label="Comunicação Corporativa / Relações Públicas">
+                                <option value="Assistente de Comunicação">Assistente de Comunicação</option>
+                                <option value="Analista de Comunicação Júnior">Analista de Comunicação Júnior</option>
+                                <option value="Analista de Comunicação Pleno">Analista de Comunicação Pleno</option>
+                                <option value="Analista de Comunicação Sênior">Analista de Comunicação Sênior</option>
+                                <option value="Supervisor de Comunicação">Supervisor de Comunicação</option>
+                                <option value="Coordenador de Comunicação">Coordenador de Comunicação</option>
+                                <option value="Gerente de Comunicação">Gerente de Comunicação</option>
+                                </optgroup>
+
+                                <!-- Serviços ao Cliente / Atendimento ao Cliente -->
+                                <optgroup label="Serviços ao Cliente / Atendimento ao Cliente">
+                                <option value="Atendente">Atendente</option>
+                                <option value="Analista de Atendimento Júnior">Analista de Atendimento Júnior</option>
+                                <option value="Analista de Atendimento Pleno">Analista de Atendimento Pleno</option>
+                                <option value="Analista de Atendimento Sênior">Analista de Atendimento Sênior</option>
+                                <option value="Supervisor de Atendimento">Supervisor de Atendimento</option>
+                                <option value="Coordenador de Atendimento">Coordenador de Atendimento</option>
+                                <option value="Gerente de Atendimento">Gerente de Atendimento</option>
+                                </optgroup>
+
+                                <!-- Compliance -->
+                                <optgroup label="Compliance">
+                                <option value="Assistente de Compliance">Assistente de Compliance</option>
+                                <option value="Analista de Compliance Júnior">Analista de Compliance Júnior</option>
+                                <option value="Analista de Compliance Pleno">Analista de Compliance Pleno</option>
+                                <option value="Analista de Compliance Sênior">Analista de Compliance Sênior</option>
+                                <option value="Supervisor de Compliance">Supervisor de Compliance</option>
+                                <option value="Coordenador de Compliance">Coordenador de Compliance</option>
+                                <option value="Gerente de Compliance">Gerente de Compliance</option>
+                                </optgroup>
+
+                                <!-- Auditoria -->
+                                <optgroup label="Auditoria">
+                                <option value="Assistente de Auditoria">Assistente de Auditoria</option>
+                                <option value="Analista de Auditoria Júnior">Analista de Auditoria Júnior</option>
+                                <option value="Analista de Auditoria Pleno">Analista de Auditoria Pleno</option>
+                                <option value="Analista de Auditoria Sênior">Analista de Auditoria Sênior</option>
+                                <option value="Supervisor de Auditoria">Supervisor de Auditoria</option>
+                                <option value="Coordenador de Auditoria">Coordenador de Auditoria</option>
+                                <option value="Gerente de Auditoria">Gerente de Auditoria</option>
+                                </optgroup>
+
+                                <!-- Planejamento Estratégico -->
+                                <optgroup label="Planejamento Estratégico">
+                                <option value="Assistente de Planejamento">Assistente de Planejamento</option>
+                                <option value="Analista de Estratégia Júnior">Analista de Estratégia Júnior</option>
+                                <option value="Analista de Estratégia Pleno">Analista de Estratégia Pleno</option>
+                                <option value="Analista de Estratégia Sênior">Analista de Estratégia Sênior</option>
+                                <option value="Supervisor de Planejamento">Supervisor de Planejamento</option>
+                                <option value="Coordenador de Planejamento">Coordenador de Planejamento</option>
+                                <option value="Gerente de Planejamento Estratégico">Gerente de Planejamento Estratégico</option>
+                                </optgroup>
+
+                                <!-- Gestão de Projetos -->
+                                <optgroup label="Gestão de Projetos">
+                                <option value="Assistente de Projetos">Assistente de Projetos</option>
+                                <option value="Analista de Projetos Júnior">Analista de Projetos Júnior</option>
+                                <option value="Analista de Projetos Pleno">Analista de Projetos Pleno</option>
+                                <option value="Analista de Projetos Sênior">Analista de Projetos Sênior</option>
+                                <option value="Supervisor de Projetos">Supervisor de Projetos</option>
+                                <option value="Coordenador de Projetos">Coordenador de Projetos</option>
+                                <option value="Gerente de Projetos">Gerente de Projetos</option>
+                                </optgroup>
+
+                                <!-- Inteligência de Mercado -->
+                                <optgroup label="Inteligência de Mercado">
+                                <option value="Assistente de Inteligência">Assistente de Inteligência</option>
+                                <option value="Analista de Inteligência Júnior">Analista de Inteligência Júnior</option>
+                                <option value="Analista de Inteligência Pleno">Analista de Inteligência Pleno</option>
+                                <option value="Analista de Inteligência Sênior">Analista de Inteligência Sênior</option>
+                                <option value="Supervisor de Inteligência">Supervisor de Inteligência</option>
+                                <option value="Coordenador de Inteligência de Mercado">Coordenador de Inteligência de Mercado</option>
+                                <option value="Gerente de Inteligência de Mercado">Gerente de Inteligência de Mercado</option>
+                                </optgroup>
+
+                                <!-- Relações com Investidores -->
+                                <optgroup label="Relações com Investidores">
+                                <option value="Assistente de RI">Assistente de RI</option>
+                                <option value="Analista de RI Júnior">Analista de RI Júnior</option>
+                                <option value="Analista de RI Pleno">Analista de RI Pleno</option>
+                                <option value="Analista de RI Sênior">Analista de RI Sênior</option>
+                                <option value="Supervisor de Relações com Investidores">Supervisor de Relações com Investidores</option>
+                                <option value="Coordenador de Relações com Investidores">Coordenador de Relações com Investidores</option>
+                                <option value="Gerente de Relações com Investidores">Gerente de Relações com Investidores</option>
+                                </optgroup>
+
+                                <!-- Comércio Exterior / Internacional -->
+                                <optgroup label="Comércio Exterior / Internacional">
+                                <option value="Assistente de Comércio Exterior">Assistente de Comércio Exterior</option>
+                                <option value="Analista de Comércio Exterior Júnior">Analista de Comércio Exterior Júnior</option>
+                                <option value="Analista de Comércio Exterior Pleno">Analista de Comércio Exterior Pleno</option>
+                                <option value="Analista de Comércio Exterior Sênior">Analista de Comércio Exterior Sênior</option>
+                                <option value="Supervisor de Comércio Exterior">Supervisor de Comércio Exterior</option>
+                                <option value="Coordenador de Comércio Exterior">Coordenador de Comércio Exterior</option>
+                                <option value="Gerente de Comércio Exterior">Gerente de Comércio Exterior</option>
+                                </optgroup>
+
+                                <!-- Compras / Suprimentos -->
+                                <optgroup label="Compras / Suprimentos">
+                                <option value="Assistente de Compras">Assistente de Compras</option>
+                                <option value="Analista de Compras Júnior">Analista de Compras Júnior</option>
+                                <option value="Analista de Compras Pleno">Analista de Compras Pleno</option>
+                                <option value="Analista de Compras Sênior">Analista de Compras Sênior</option>
+                                <option value="Supervisor de Compras">Supervisor de Compras</option>
+                                <option value="Coordenador de Compras">Coordenador de Compras</option>
+                                <option value="Gerente de Compras">Gerente de Compras</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="department" class="block text-sm font-medium text-gray-700 mb-1">Departamento</label>
+                            <select id="department" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 outline-none">
+                               <option value="">Selecione o Departamento</option>
+                                <option value="Administrativo / Facilities">ADM/Facilities</option>
+                                <option value="Jurídico">Jurídico</option> 
+                                <option value="TI">TI</option>
+                                <option value="Financeiro">Financeiro</option>
+                                <option value="Recursos Humanos">Recursos Humanos</option>
+                                <option value="Vendas">Vendas</option>
+                                <option value="Logística / Cadeia de Suprimentos">Logística / Cadeia de Suprimentos</option>
+                                <option value="Operações / Produção">Operações / Produção</option>
+                                <option value="Engenharia">Engenharia</option>
+                                <option value="Pesquisa e Desenvolvimento">Pesquisa e Desenvolvimento</option>
+                                <option value="Qualidade">Qualidade</option>
+                                <option value="Sustentabilidade / ESG"></option>
+                                <option value="Comercial">Comercial</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Comunicação Corporativa / Relações Públicas">Comunicação Corporativa / Relações Públicas</option>
+                                <option value="Serviços ao Cliente / Atendimento ao Cliente">Serviços ao Cliente / Atendimento ao Cliente</option>
+                                <option value="Compliance">Compliance</option>
+                                <option value="Auditoria">Auditoria</option>
+                                <option value="Planejamento Estratégico">Planejamento Estratégico</option>
+                                <option value="Gestão de Projetos">Gestão de Projetos</option>
+                                <option value="Inteligência de Mercado">Inteligência de Mercado</option>
+                                <option value="Relações com investidores">Relações com Investidores</option>
+                                <option value="Comércio Exterior / Internacional">Comércio Exterior / Internacional</option>
+                                <option value="Compras / Suprimentos">Compras / Suprimentos</option>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       
+                        <div>
+                            <label for="salary" class="block text-sm font-medium text-gray-700 mb-1">Salário (R$)</label>
+                            <input type="number" id="salary" min="0" step="0.01" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 outline-none">
+                        </div>
+                        
+                        <div>
+                            <label for="hire-date" class="block text-sm font-medium text-gray-700 mb-1">Data de Admissão</label>
+                            <input type="date" id="hire-date" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 outline-none">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <div class="flex space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="status" value="Ativo" checked
+                                       class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                                <span class="ml-2 text-gray-700">Ativo</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="status" value="Inativo"
+                                       class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                                <span class="ml-2 text-gray-700">Inativo</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" id="cancel-btn"
+                            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="save-btn"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="modal-overlay absolute inset-0 bg-black opacity-50"></div>
+        
+        <div class="bg-white rounded-lg shadow-xl z-50 w-full max-w-md mx-4 fade-in">
+            <div class="flex justify-between items-center border-b px-6 py-4">
+                <h3 class="text-lg font-semibold text-gray-800">Confirmar Exclusão</h3>
+                <button id="close-delete-modal" class="text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <p class="text-gray-700">Tem certeza que deseja excluir o funcionário <span id="employee-to-delete" class="font-semibold"></span>? Esta ação não pode ser desfeita.</p>
+                
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" id="cancel-delete-btn"
+                            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Cancelar
+                    </button>
+                    <button type="button" id="confirm-delete-btn"
+                            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Excluir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data - in a real app, this would come from an API
+        let employees = [
+            { id: 1, name: "João Silva", email: "joao@empresa.com", position: "Aprendiz", department: "TI", salary: 7500.00, hireDate: "2020-05-15", status: "Ativo" },
+            { id: 2, name: "Maria Santos", email: "maria@empresa.com", position: "Designer", department: "Marketing", salary: 5200.00, hireDate: "2021-02-10", status: "Ativo" },
+            { id: 3, name: "Carlos Oliveira", email: "carlos@empresa.com", position: "Gerente", department: "Vendas", salary: 9800.00, hireDate: "2018-11-22", status: "Ativo" },
+            { id: 4, name: "Ana Pereira", email: "ana@empresa.com", position: "Analista", department: "Financeiro", salary: 6200.00, hireDate: "2019-08-05", status: "Inativo" },
+            { id: 5, name: "Mariana Oliveira", email: "oliveira.mari@empresa.com", position: "Analista SR", department: "ADM", salary : 5200.00, hireDate: "2020-03-19", status: "Ativo"}
+        ];
+
+        // DOM Elements
+        const employeeTableBody = document.getElementById('employee-table-body');
+        const emptyState = document.getElementById('empty-state');
+        const employeeModal = document.getElementById('employee-modal');
+        const deleteModal = document.getElementById('delete-modal');
+        const employeeForm = document.getElementById('employee-form');
+        const searchInput = document.getElementById('search-input');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+
+        // Buttons
+        const addEmployeeBtn = document.getElementById('add-employee-btn');
+        const closeModalBtn = document.getElementById('close-modal');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const closeDeleteModalBtn = document.getElementById('close-delete-modal');
+        const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+
+        // Variables
+        let currentEmployeeId = null;
+        let isEditMode = false;
+
+        // Initialize the app
+        function init() {
+            renderEmployeeTable();
+            setupEventListeners();
+        }
+
+        // Render employee table
+        function renderEmployeeTable(filteredEmployees = null) {
+            const dataToRender = filteredEmployees || employees;
+            
+            if (dataToRender.length === 0) {
+                employeeTableBody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            
+            employeeTableBody.innerHTML = dataToRender.map(employee => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${employee.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <span class="text-blue-600 font-medium">${employee.name.charAt(0)}</span>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">${employee.name}</div>
+                                <div class="text-sm text-gray-500">${employee.email}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${employee.position}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${employee.department === 'TI' ? 'bg-blue-100 text-blue-800' : 
+                              employee.department === 'Marketing' ? 'bg-purple-100 text-purple-800' : 
+                              employee.department === 'RH' ? 'bg-pink-100 text-pink-800' : 
+                              employee.department === 'Financeiro' ? 'bg-green-100 text-green-800' : 
+                              'bg-yellow-100 text-yellow-800'}">
+                            ${employee.department}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        R$ ${employee.salary.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${employee.status === 'Ativo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${employee.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="editEmployee(${employee.id})" class="text-blue-600 hover:text-blue-900 mr-3">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="showDeleteModal(${employee.id}, '${employee.name}')" class="text-red-600 hover:text-red-900">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Add employee
+            addEmployeeBtn.addEventListener('click', () => {
+                isEditMode = false;
+                document.getElementById('modal-title').textContent = 'Adicionar Funcionário';
+                document.getElementById('employee-id').value = '';
+                employeeForm.reset();
+                employeeModal.classList.remove('hidden');
+            });
+
+            // Close modal
+            closeModalBtn.addEventListener('click', closeModal);
+            cancelBtn.addEventListener('click', closeModal);
+            
+            // Close delete modal
+            closeDeleteModalBtn.addEventListener('click', closeDeleteModal);
+            cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+            
+            // Save employee
+            employeeForm.addEventListener('submit', saveEmployee);
+            
+            // Delete employee
+            confirmDeleteBtn.addEventListener('click', deleteEmployee);
+            
+            // Search
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const filtered = employees.filter(emp => 
+                    emp.name.toLowerCase().includes(searchTerm) || 
+                    emp.email.toLowerCase().includes(searchTerm) ||
+                    emp.position.toLowerCase().includes(searchTerm) ||
+                    emp.department.toLowerCase().includes(searchTerm)
+                );
+                renderEmployeeTable(filtered);
+            });
+        }
+
+        // Edit employee
+        function editEmployee(id) {
+            const employee = employees.find(emp => emp.id === id);
+            if (!employee) return;
+            
+            isEditMode = true;
+            currentEmployeeId = id;
+            
+            document.getElementById('modal-title').textContent = 'Editar Funcionário';
+            document.getElementById('employee-id').value = employee.id;
+            document.getElementById('name').value = employee.name;
+            document.getElementById('email').value = employee.email;
+            document.getElementById('position').value = employee.position;
+            document.getElementById('department').value = employee.department;
+            document.getElementById('salary').value = employee.salary;
+            document.getElementById('hire-date').value = employee.hireDate;
+            
+            const statusRadio = document.querySelector(`input[name="status"][value="${employee.status}"]`);
+            if (statusRadio) statusRadio.checked = true;
+            
+            employeeModal.classList.remove('hidden');
+        }
+
+        // Show delete confirmation modal
+        function showDeleteModal(id, name) {
+            currentEmployeeId = id;
+            document.getElementById('employee-to-delete').textContent = name;
+            deleteModal.classList.remove('hidden');
+        }
+
+        // Save employee
+        function saveEmployee(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(employeeForm);
+            const employeeData = {
+                id: isEditMode ? currentEmployeeId : employees.length > 0 ? Math.max(...employees.map(emp => emp.id)) + 1 : 1,
+                name: formData.get('name'),
+                email: formData.get('email'),
+                position: formData.get('position'),
+                department: formData.get('department'),
+                salary: parseFloat(formData.get('salary')),
+                hireDate: formData.get('hire-date'),
+                status: formData.get('status')
+            };
+            
+            if (isEditMode) {
+                // Update existing employee
+                const index = employees.findIndex(emp => emp.id === currentEmployeeId);
+                if (index !== -1) {
+                    employees[index] = employeeData;
+                    showToast('Funcionário atualizado com sucesso!');
+                }
+            } else {
+                // Add new employee
+                employees.push(employeeData);
+                showToast('Funcionário adicionado com sucesso!');
+            }
+            
+            renderEmployeeTable();
+            closeModal();
+        }
+
+        // Delete employee
+        function deleteEmployee() {
+            employees = employees.filter(emp => emp.id !== currentEmployeeId);
+            showToast('Funcionário excluído com sucesso!');
+            renderEmployeeTable();
+            closeDeleteModal();
+        }
+
+        // Close modal
+        function closeModal() {
+            employeeModal.classList.add('hidden');
+        }
+
+        // Close delete modal
+        function closeDeleteModal() {
+            deleteModal.classList.add('hidden');
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden');
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
