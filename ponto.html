@@ -7,6 +7,38 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+                /* Modo escuro */
+        .dark-mode {
+        background-color: #1a202c !important;
+        color: #e2e8f0 !important;
+        }
+
+        .dark-mode .bg-white,
+        .dark-mode .bg-gray-50 {
+        background-color: #2d3748 !important;
+        }
+
+        .dark-mode .text-gray-700,
+        .dark-mode .text-gray-600,
+        .dark-mode .text-gray-500 {
+        color: #e2e8f0 !important;
+        }
+
+        .dark-mode .border-gray-300,
+        .dark-mode .border-gray-200 {
+        border-color: #4a5568 !important;
+        }
+
+        .dark-mode input,
+        .dark-mode select {
+        background-color: #4a5568 !important;
+        color: #e2e8f0 !important;
+        border-color: #4a5568 !important;
+        }
+
+        .dark-mode .hover\:bg-gray-50:hover {
+        background-color: #4a5568 !important;
+        }
         .fade-in {
             animation: fadeIn 0.3s ease-in-out;
         }
@@ -53,6 +85,10 @@
                 <span class="hidden md:block">Bem-vindo, Admin</span>
                 <button class="bg-blue-700 hover:bg-blue-800 px-3 py-1 rounded-full">
                     <i class="fas fa-sign-out-alt"></i>
+                    <!-- Botão de alternância de modo escuro -->
+                    <button id="toggleTheme" class="ml-2 text-white hover:text-gray-300 transition text-xl" title="Alternar modo claro/escuro">
+                    <i class="fas fa-moon"></i>
+                    </button>
                 </button>
             </div>
         </div>
@@ -266,6 +302,11 @@
     </div>
 
     <script>
+        // Alternância de modo escuro
+        const toggleThemeBtn = document.getElementById('toggleTheme');
+        toggleThemeBtn?.addEventListener('click', function () {
+            document.body.classList.toggle('dark-mode');
+        });
         // Sample data - in a real app, this would come from an API
         let employees = [
             { id: 1, name: "João Silva", email: "joao@empresa.com", position: "Desenvolvedor", department: "TI", salary: 7500.00, hireDate: "2020-05-15", status: "Ativo" },
