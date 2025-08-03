@@ -7,6 +7,40 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+
+                /* Modo escuro */
+        .dark-mode {
+        background-color: #1a202c !important;
+        color: #e2e8f0 !important;
+        }
+
+        .dark-mode .bg-white,
+        .dark-mode .bg-gray-50 {
+        background-color: #2d3748 !important;
+        }
+
+        .dark-mode .text-gray-700,
+        .dark-mode .text-gray-600,
+        .dark-mode .text-gray-500 {
+        color: #e2e8f0 !important;
+        }
+
+        .dark-mode .border-gray-300,
+        .dark-mode .border-gray-200 {
+        border-color: #4a5568 !important;
+        }
+
+        .dark-mode input,
+        .dark-mode select {
+        background-color: #4a5568 !important;
+        color: #e2e8f0 !important;
+        border-color: #4a5568 !important;
+        }
+
+        .dark-mode .hover\:bg-gray-50:hover {
+        background-color: #4a5568 !important;
+        }
+
         .fade-in {
             animation: fadeIn 0.3s ease-in-out;
         }
@@ -54,6 +88,12 @@
                 <button class="bg-blue-700 hover:bg-blue-800 px-3 py-1 rounded-full">
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
+
+                <!-- Botão de alternância de modo escuro -->
+                <button id="toggleTheme" class="ml-2 text-white hover:text-gray-300 transition text-xl" title="Alternar modo claro/escuro">
+                <i class="fas fa-moon"></i>
+                </button>
+
             </div>
         </div>
     </header>
@@ -110,7 +150,6 @@
     <!-- Add/Edit Employee Modal -->
     <div id="employee-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
         <div class="modal-overlay absolute inset-0 bg-black opacity-50"></div>
-        
         <div class="bg-white rounded-lg shadow-xl z-50 w-full max-w-md mx-4 fade-in">
             <div class="flex justify-between items-center border-b px-6 py-4">
                 <h3 class="text-lg font-semibold text-gray-800" id="modal-title">Adicionar Funcionário</h3>
@@ -423,7 +462,7 @@
                                 <option value="Engenharia">Engenharia</option>
                                 <option value="Pesquisa e Desenvolvimento">Pesquisa e Desenvolvimento</option>
                                 <option value="Qualidade">Qualidade</option>
-                                <option value="Sustentabilidade / ESG"></option>
+                                <option value="Sustentabilidade / ESG">Sustentabilidade / ESG</option>
                                 <option value="Comercial">Comercial</option>
                                 <option value="Marketing">Marketing</option>
                                 <option value="Comunicação Corporativa / Relações Públicas">Comunicação Corporativa / Relações Públicas</option>
@@ -515,13 +554,77 @@
     </div>
 
     <script>
+
+            // Alternância de modo escuro
+            const toggleThemeBtn = document.getElementById('toggleTheme');
+            toggleThemeBtn?.addEventListener('click', function () {
+                document.body.classList.toggle('dark-mode');
+            });
+
+
         // Sample data - in a real app, this would come from an API
         let employees = [
-            { id: 1, name: "João Silva", email: "joao@empresa.com", position: "Aprendiz", department: "TI", salary: 7500.00, hireDate: "2020-05-15", status: "Ativo" },
-            { id: 2, name: "Maria Santos", email: "maria@empresa.com", position: "Designer", department: "Marketing", salary: 5200.00, hireDate: "2021-02-10", status: "Ativo" },
-            { id: 3, name: "Carlos Oliveira", email: "carlos@empresa.com", position: "Gerente", department: "Vendas", salary: 9800.00, hireDate: "2018-11-22", status: "Ativo" },
-            { id: 4, name: "Ana Pereira", email: "ana@empresa.com", position: "Analista", department: "Financeiro", salary: 6200.00, hireDate: "2019-08-05", status: "Inativo" },
-            { id: 5, name: "Mariana Oliveira", email: "oliveira.mari@empresa.com", position: "Analista SR", department: "ADM", salary : 5200.00, hireDate: "2020-03-19", status: "Ativo"}
+            { id: 102345, name: "João Silva", email: "joao.silva@empresa.com", position: "Aprendiz", department: "TI", salary: 7500.00, hireDate: "2020-05-15", status: "Ativo" },
+            { id: 104567, name: "Maria Santos", email: "maria.santos@empresa.com", position: "Designer", department: "Marketing", salary: 5200.00, hireDate: "2021-02-10", status: "Ativo" },
+            { id: 106789, name: "Carlos Oliveira", email: "carlos.oliveira@empresa.com", position: "Gerente", department: "Vendas", salary: 9800.00, hireDate: "2018-11-22", status: "Ativo" },
+            { id: 108901, name: "Ana Pereira", email: "ana.pereira@empresa.com", position: "Analista", department: "Financeiro", salary: 6200.00, hireDate: "2019-08-05", status: "Inativo" },
+            { id: 110234, name: "Mariana Oliveira", email: "mariana.oliveira@empresa.com", position: "Analista SR", department: "ADM", salary: 5200.00, hireDate: "2020-03-19", status: "Ativo" },
+            { id: 112345, name: "Pedro Costa", email: "pedro.costa@empresa.com", position: "Estagiário", department: "RH", salary: 3200.00, hireDate: "2022-01-12", status: "Ativo" },
+            { id: 114567, name: "Fernanda Lima", email: "fernanda.lima@empresa.com", position: "Assistente", department: "Financeiro", salary: 4100.00, hireDate: "2021-07-08", status: "Ativo" },
+            { id: 116789, name: "Lucas Martins", email: "lucas.martins@empresa.com", position: "Supervisor", department: "TI", salary: 6700.00, hireDate: "2020-11-03", status: "Ativo" },
+            { id: 118901, name: "Juliana Rocha", email: "juliana.rocha@empresa.com", position: "Analista", department: "Marketing", salary: 5800.00, hireDate: "2019-04-17", status: "Inativo" },
+            { id: 120345, name: "Rafael Almeida", email: "rafael.almeida@empresa.com", position: "Designer", department: "Marketing", salary: 5400.00, hireDate: "2022-06-25", status: "Ativo" },
+            { id: 122456, name: "Camila Barbosa", email: "camila.barbosa@empresa.com", position: "Gerente", department: "ADM", salary: 8900.00, hireDate: "2018-09-30", status: "Ativo" },
+            { id: 124567, name: "Bruno Santos", email: "bruno.santos@empresa.com", position: "Coordenador", department: "TI", salary: 7600.00, hireDate: "2020-02-14", status: "Ativo" },
+            { id: 126678, name: "Patrícia Costa", email: "patricia.costa@empresa.com", position: "Analista SR", department: "Financeiro", salary: 6200.00, hireDate: "2021-10-10", status: "Ativo" },
+            { id: 128789, name: "Eduardo Lima", email: "eduardo.lima@empresa.com", position: "Supervisor", department: "Vendas", salary: 7100.00, hireDate: "2019-12-01", status: "Inativo" },
+            { id: 130890, name: "Larissa Pereira", email: "larissa.pereira@empresa.com", position: "Estagiário", department: "Marketing", salary: 3100.00, hireDate: "2023-03-05", status: "Ativo" },
+            { id: 132901, name: "Felipe Rocha", email: "felipe.rocha@empresa.com", position: "Diretor", department: "TI", salary: 12000.00, hireDate: "2017-08-20", status: "Ativo" },
+            { id: 134012, name: "Beatriz Martins", email: "beatriz.martins@empresa.com", position: "Assistente", department: "ADM", salary: 4300.00, hireDate: "2020-06-18", status: "Ativo" },
+            { id: 136123, name: "Rodrigo Almeida", email: "rodrigo.almeida@empresa.com", position: "Analista", department: "Jurídico", salary: 5900.00, hireDate: "2021-01-22", status: "Ativo" },
+            { id: 138234, name: "Aline Santos", email: "aline.santos@empresa.com", position: "Designer", department: "Marketing", salary: 5100.00, hireDate: "2022-09-09", status: "Ativo" },
+            { id: 140345, name: "Gustavo Silva", email: "gustavo.silva@empresa.com", position: "Gerente", department: "Logística", salary: 9400.00, hireDate: "2019-05-27", status: "Ativo" },
+            { id: 142456, name: "Vanessa Costa", email: "vanessa.costa@empresa.com", position: "Analista", department: "RH", salary: 5600.00, hireDate: "2020-10-10", status: "Ativo" },
+            { id: 144567, name: "Thiago Lima", email: "thiago.lima@empresa.com", position: "Supervisor", department: "TI", salary: 6900.00, hireDate: "2021-03-15", status: "Ativo" },
+            { id: 146678, name: "Sabrina Rocha", email: "sabrina.rocha@empresa.com", position: "Assistente", department: "Financeiro", salary: 4200.00, hireDate: "2022-07-07", status: "Ativo" },
+            { id: 148789, name: "Daniel Martins", email: "daniel.martins@empresa.com", position: "Estagiário", department: "Jurídico", salary: 3000.00, hireDate: "2023-01-01", status: "Ativo" },
+            { id: 150890, name: "Renata Almeida", email: "renata.almeida@empresa.com", position: "Analista SR", department: "ADM", salary: 6100.00, hireDate: "2020-04-04", status: "Ativo" },
+            { id: 152901, name: "Marcelo Santos", email: "marcelo.santos@empresa.com", position: "Gerente", department: "TI", salary: 9700.00, hireDate: "2018-08-08", status: "Ativo" },
+            { id: 154012, name: "Tatiane Costa", email: "tatiane.costa@empresa.com", position: "Designer", department: "Marketing", salary: 5300.00, hireDate: "2021-11-11", status: "Ativo" },
+            { id: 156123, name: "André Lima", email: "andre.lima@empresa.com", position: "Supervisor", department: "Logística", salary: 6800.00, hireDate: "2019-09-09", status: "Ativo" },
+            { id: 158234, name: "Isabela Rocha", email: "isabela.rocha@empresa.com", position: "Assistente", department: "RH", salary: 4000.00, hireDate: "2022-02-02", status: "Ativo" },
+            { id: 160345, name: "Leonardo Martins", email: "leonardo.martins@empresa.com", position: "Estagiário", department: "TI", salary: 3100.00, hireDate: "2023-05-05", status: "Ativo" },
+            { id: 162456, name: "Carla Almeida", email: "carla.almeida@empresa.com", position: "Analista", department: "Financeiro", salary: 5700.00, hireDate: "2020-12-12", status: "Ativo" },
+            { id: 164567, name: "Paulo Henrique", email: "paulo.henrique@empresa.com", position: "Gerente", department: "TI", salary: 9500.00, hireDate: "2017-05-10", status: "Ativo" },
+            { id: 166678, name: "Luana Souza", email: "luana.souza@empresa.com", position: "Analista", department: "Financeiro", salary: 6000.00, hireDate: "2020-09-13", status: "Ativo" },
+            { id: 168789, name: "Vinícius Melo", email: "vinicius.melo@empresa.com", position: "Supervisor", department: "Logística", salary: 7200.00, hireDate: "2019-06-20", status: "Ativo" },
+            { id: 170890, name: "Tatiana Ramos", email: "tatiana.ramos@empresa.com", position: "Assistente", department: "RH", salary: 4100.00, hireDate: "2021-12-01", status: "Ativo" },
+            { id: 172901, name: "Diego Barbosa", email: "diego.barbosa@empresa.com", position: "Estagiário", department: "Marketing", salary: 3000.00, hireDate: "2023-06-10", status: "Ativo" },
+            { id: 174012, name: "Natália Gomes", email: "natalia.gomes@empresa.com", position: "Designer", department: "ADM", salary: 5100.00, hireDate: "2022-10-22", status: "Ativo" },
+            { id: 176123, name: "Roberto Dias", email: "roberto.dias@empresa.com", position: "Coordenador", department: "Jurídico", salary: 7500.00, hireDate: "2018-02-14", status: "Inativo" },
+            { id: 178234, name: "Elisa Castro", email: "elisa.castro@empresa.com", position: "Analista SR", department: "TI", salary: 6200.00, hireDate: "2020-07-28", status: "Ativo" },
+            { id: 180345, name: "Ricardo Moreira", email: "ricardo.moreira@empresa.com", position: "Diretor", department: "Financeiro", salary: 11800.00, hireDate: "2016-01-01", status: "Ativo" },
+            { id: 182456, name: "Bianca Nunes", email: "bianca.nunes@empresa.com", position: "Analista", department: "ADM", salary: 5800.00, hireDate: "2021-04-15", status: "Ativo" },
+            { id: 184567, name: "Henrique Pires", email: "henrique.pires@empresa.com", position: "Supervisor", department: "Marketing", salary: 6900.00, hireDate: "2019-03-10", status: "Ativo" },
+            { id: 186678, name: "Juliana Mendes", email: "juliana.mendes@empresa.com", position: "Estagiário", department: "Logística", salary: 3100.00, hireDate: "2023-08-01", status: "Ativo" },
+            { id: 188789, name: "Fábio Teixeira", email: "fabio.teixeira@empresa.com", position: "Gerente", department: "RH", salary: 8800.00, hireDate: "2017-06-06", status: "Inativo" },
+            { id: 190890, name: "Renata Vasconcelos", email: "renata.vasconcelos@empresa.com", position: "Assistente", department: "Jurídico", salary: 4200.00, hireDate: "2022-05-18", status: "Ativo" },
+            { id: 192901, name: "Tiago Cruz", email: "tiago.cruz@empresa.com", position: "Analista", department: "TI", salary: 5700.00, hireDate: "2020-02-09", status: "Ativo" },
+            { id: 194012, name: "Amanda Freitas", email: "amanda.freitas@empresa.com", position: "Designer", department: "Marketing", salary: 5300.00, hireDate: "2021-09-17", status: "Ativo" },
+            { id: 196123, name: "João Pedro Cunha", email: "joao.cunha@empresa.com", position: "Supervisor", department: "Financeiro", salary: 7000.00, hireDate: "2018-11-25", status: "Ativo" },
+            { id: 198234, name: "Clara Silveira", email: "clara.silveira@empresa.com", position: "Analista SR", department: "ADM", salary: 6300.00, hireDate: "2020-03-30", status: "Ativo" },
+            { id: 200345, name: "Bruno Azevedo", email: "bruno.azevedo@empresa.com", position: "Estagiário", department: "TI", salary: 2900.00, hireDate: "2023-04-04", status: "Ativo" },
+            { id: 202456, name: "Helena Lopes", email: "helena.lopes@empresa.com", position: "Assistente", department: "RH", salary: 4300.00, hireDate: "2022-11-11", status: "Ativo" },
+            { id: 204567, name: "Fernando Rocha", email: "fernando.rocha@empresa.com", position: "Coordenador", department: "Logística", salary: 7800.00, hireDate: "2019-07-19", status: "Ativo" },
+            { id: 206678, name: "Luciana Queiroz", email: "luciana.queiroz@empresa.com", position: "Gerente", department: "ADM", salary: 9400.00, hireDate: "2016-12-21", status: "Ativo" },
+            { id: 208789, name: "Matheus Torres", email: "matheus.torres@empresa.com", position: "Analista", department: "Jurídico", salary: 5900.00, hireDate: "2021-06-06", status: "Ativo" },
+            { id: 210890, name: "Simone Ribeiro", email: "simone.ribeiro@empresa.com", position: "Designer", department: "Marketing", salary: 5200.00, hireDate: "2022-03-03", status: "Ativo" },
+            { id: 212901, name: "Rodrigo Ferreira", email: "rodrigo.ferreira@empresa.com", position: "Supervisor", department: "TI", salary: 7200.00, hireDate: "2019-10-20", status: "Ativo" },
+            { id: 214012, name: "Lívia Monteiro", email: "livia.monteiro@empresa.com", position: "Assistente", department: "Financeiro", salary: 4400.00, hireDate: "2021-01-15", status: "Ativo" },
+            { id: 216123, name: "Caio Braga", email: "caio.braga@empresa.com", position: "Analista", department: "RH", salary: 5800.00, hireDate: "2020-08-24", status: "Ativo" },
+            { id: 218234, name: "Yasmin Duarte", email: "yasmin.duarte@empresa.com", position: "Estagiário", department: "ADM", salary: 2900.00, hireDate: "2023-02-20", status: "Ativo" },
+            { id: 220345, name: "Hugo Tavares", email: "hugo.tavares@empresa.com", position: "Gerente", department: "Jurídico", salary: 9300.00, hireDate: "2017-07-14", status: "Inativo" },
+            { id: 222456, name: "Melina Brito", email: "melina.brito@empresa.com", position: "Analista SR", department: "TI", salary: 6400.00, hireDate: "2020-05-06", status: "Ativo" }
         ];
 
         // DOM Elements
