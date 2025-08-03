@@ -17,6 +17,48 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
+        /* Dark Mode Styles */
+        .dark-mode {
+            background-color: #1a202c !important;
+            color: #e2e8f0;
+        }
+
+        .dark-mode .bg-white {
+            background-color: #2d3748 !important;
+        }
+
+        .dark-mode .text-gray-700,
+        .dark-mode .text-gray-600,
+        .dark-mode .text-gray-500,
+        .dark-mode .text-gray-400 {
+            color: #e2e8f0 !important;
+        }
+
+        .dark-mode input,
+        .dark-mode select,
+        .dark-mode textarea {
+            background-color: #4a5568;
+            color: #edf2f7;
+            border-color: #718096;
+        }
+
+        .dark-mode .bg-gray-50 {
+            background-color: #1a202c !important;
+        }
+
+        .dark-mode .border-gray-300,
+        .dark-mode .border-gray-200 {
+            border-color: #4a5568 !important;
+        }
+
+        .dark-mode .bg-indigo-600 {
+            background-color: #5a67d8 !important;
+        }
+
+        .dark-mode .hover\:bg-gray-50:hover {
+            background-color: #2d3748 !important;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex items-center justify-center bg-rh-pattern">
@@ -26,8 +68,14 @@
                 <h1 class="text-2xl font-bold text-white">
                     <i class="fas fa-users-cog mr-2"></i> Sistema RH
                 </h1>
-                <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                    <i class="fas fa-lock text-white"></i>
+                <div class="flex items-center gap-2">
+                    <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-lock text-white"></i>
+                    </div>
+                    <!-- Botão de Modo Escuro -->
+                    <button id="toggleTheme" title="Modo escuro" class="text-white hover:text-gray-300 transition duration-300 text-lg">
+                        <i class="fas fa-moon"></i>
+                    </button>
                 </div>
             </div>
             <p class="text-indigo-100 mt-1">Acesso restrito à empresa</p>
@@ -83,7 +131,7 @@
                         <label for="remember-me" class="ml-2 block text-sm text-gray-700">Lembrar-me</label>
                     </div>
                     <div class="text-sm">
-                        <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">Esqueceu sua senha?</a>
+                        <a href="#" class="font-medium text-indigo-100 hover:text-indigo-300">Esqueceu sua senha?</a>
                     </div>
                 </div>
                 
@@ -156,15 +204,14 @@
                 const email = document.getElementById('email').value;
                 const password = document.getElementById('password').value;
                 
-                // Simulate login process
                 console.log('Login attempt with:', { email, password });
-                
-                // Here you would typically make an AJAX request to your backend
-                // For demo purposes, we'll just show an alert
                 alert('Login realizado com sucesso! Redirecionando...');
-                
-                // In a real app, you would redirect after successful login
-                // window.location.href = '/dashboard';
+            });
+
+            // Toggle dark mode
+            const toggleTheme = document.getElementById('toggleTheme');
+            toggleTheme.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
             });
         });
     </script>
